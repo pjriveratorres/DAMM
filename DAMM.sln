@@ -1,0 +1,23 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZZ.MobilePricing.UserExits", "PricingExtension\ZZ.MobilePricing.UserExits.csproj", "{F5C16967-4EE8-4AB7-90E5-25169AE744A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PricingManager", "PricingManager\PricingManager.csproj", "{89DD9472-B0C6-42DF-B908-1470089CF5F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5C16967-4EE8-4AB7-90E5-25169AE744A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5C16967-4EE8-4AB7-90E5-25169AE744A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5C16967-4EE8-4AB7-90E5-25169AE744A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5C16967-4EE8-4AB7-90E5-25169AE744A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
