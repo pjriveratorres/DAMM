@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZZ.MobilePricing.UserExits"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PricingManager", "PricingManager\PricingManager.csproj", "{89DD9472-B0C6-42DF-B908-1470089CF5F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialExtension", "MaterialExtension\MaterialExtension.csproj", "{3FE4757F-65B9-4756-83F2-76BCCC9569BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,5 +21,9 @@ Global
 		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89DD9472-B0C6-42DF-B908-1470089CF5F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FE4757F-65B9-4756-83F2-76BCCC9569BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FE4757F-65B9-4756-83F2-76BCCC9569BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FE4757F-65B9-4756-83F2-76BCCC9569BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FE4757F-65B9-4756-83F2-76BCCC9569BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
