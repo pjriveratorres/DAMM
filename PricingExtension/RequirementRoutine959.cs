@@ -11,16 +11,12 @@ namespace ZZ.MobilePricing.UserExits
                                      IPricingInputDocument inputDocument,
                                      ICommunicationWorkStructure communicationWorkStructure)
         {
-            //this.LogTrace("*** ZZ.MobilePricing.UserExits:RequirementRoutine959 - start");
+            // Get Deal Condition Type
+            string conditionType = inputDocumentItem.GetStringAttribute("ZZTYPE");
 
-            foreach (IManualConditionRecord condRecord in inputDocumentItem.ManualConditionRecords)
+            if (conditionType.Equals("YPRC") || conditionType.Equals("YPRN"))
             {
-                //this.LogTrace(condRecord.CondTypeName);
-
-                if (condRecord.CondTypeName.Equals("YPRC") || condRecord.CondTypeName.Equals("YPRN"))
-                {
-                    return false;
-                }
+                return false;
             }
 
             return true;

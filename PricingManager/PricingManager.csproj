@@ -74,6 +74,9 @@
     <Reference Include="SAPCD.DSD.MobileClient.Business">
       <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.dll</HintPath>
     </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Data">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>
