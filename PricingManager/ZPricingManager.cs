@@ -29,6 +29,9 @@ namespace Capgemini.DSD.Pricing
         [Resolve]
         public DealConditionsDAL DealConditionDAL { get; set; }
 
+        [Resolve]
+        public FieldExtensionDAL FieldExtensionDAL { get; set; }
+
         /*
         // this method is used for loading data asynchronously
         public async override Task InitializeAsync()
@@ -48,28 +51,6 @@ namespace Capgemini.DSD.Pricing
         }
         */
 
-        public async override Task<IPricingInputDocumentBase> PrepareInputDocumentAsync(PricingParameters pricingParameters)
-        {
-            var inputDocument = await base.PrepareInputDocumentAsync(pricingParameters);
-
-            IList<DocumentCondBO> conditions = pricingParameters.Conditions;
-            this.LogDebug("*** ZPricingManager:PrepareInputDocumentAsync - conditions = " + (conditions.Count));
-
-            if (conditions != null)
-            {
-                IList<DocumentCondBO> conditionsForHeader = (IList<DocumentCondBO>)null;
-                IList<DocumentCondBO> conditionsForItems = (IList<DocumentCondBO>)null;
-
-                conditionsForHeader = (IList<DocumentCondBO>)conditions.Where<DocumentCondBO>((Func<DocumentCondBO, bool>)(x => x.ItemNumber == 0)).ToList<DocumentCondBO>();
-                conditionsForItems = (IList<DocumentCondBO>)conditions.Where<DocumentCondBO>((Func<DocumentCondBO, bool>)(x => (uint)x.ItemNumber > 0U)).ToList<DocumentCondBO>();
-      
-                this.LogDebug("*** ZPricingManager:PrepareInputDocumentAsync - conditionsForHeader =" + (conditionsForHeader.Count));
-                this.LogDebug("*** ZPricingManager:PrepareInputDocumentAsync - conditionsForItems =" + (conditionsForItems.Count));
-            
-            }
-
-            return inputDocument;
-        }
 
         public override void FillInputDocumentItem(IPricingInputDocumentBase inputDocument, IDocumentItemEntity documentItem, ActivityEntity activity, CustomizingSalesAreaBO customizingSalesArea, IList<MaterialBO> materials, IList<MaterialAltUomBO> materialAltUoms, IList<MaterialSalesOrgBO> materialSalesOrgs, IList<MaterialTaxBO> materialTaxes, CustomerSalesAreaBO customerSalesArea, CustomerBO customer, bool isRunningOnIsoCode, IList<DocumentCondBO> conditionsForItems, IDictionary<string, string> materialCampaigns, IDictionary<string, string> physicalUnitDictionary, IDictionary<string, CustomizingBO> reasonCodesCustomizingDictionary)
         {
@@ -154,16 +135,43 @@ namespace Capgemini.DSD.Pricing
 
             try
             {
-                string prdh4 = materialSalesOrg.ProductHierarchy.Substring(6, 2);
+                var zzIIEE = FieldExtensionDAL.FindFieldExtensionsForBusinessObjectAsync("MSE_MATERIAL_HD").Result;
+                this.LogDebug("*** ZPricingManager:ZZIIEE count " + zzIIEE.Count());
+                              
+                if (zzIIEE.Count > 0) 
+                {
+                    IEnumerator<FieldExtensionBO> enumerator = zzIIEE.GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        FieldExtensionBO current = enumerator.Current;
+                        this.LogDebug(":ZZIIEE-BONAME=" + current.BOName);
+                        this.LogDebug(":ZZIIEE-KEY=" + current.ElementKey);
+                        this.LogDebug(":ZZIIEE-FIELD=" + current.Field);
+                        this.LogDebug(":ZZIIEE-VALUE=" + current.Value); 
 
+                        if (current.ElementKey.Equals(material.MaterialNumber, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            inputItem.AddAttribute("ZZIIEE", current.Value);
+                            break;
+                        }
+                    }
+                }
+
+                string prdh4 = materialSalesOrg.ProductHierarchy.Substring(6, 2);
                 inputItem.AddAttribute("ZZPRODH4", prdh4);
+
                 inputItem.AddAttribute("ZZMVGR1_P", materialSalesOrg.MaterialGroup1);
                 inputItem.AddAttribute("ZZMVGR2_P", materialSalesOrg.MaterialGroup2);
                 inputItem.AddAttribute("ZZMVGR3_P", materialSalesOrg.MaterialGroup3); 
+                inputItem.AddAttribute("UPMAT", material.MaterialNumber); 
             }
-            catch (Exception)
-            { }
+            catch (Exception ex)
+            {
+                this.LogWarn("ZPricingManager:FillInputDocumentItem - Linea " + inputItem.ItemId + " Material: " + material.MaterialNumber, ex);
+            }
 
+            this.LogDebug("*** ZPricingManager:FillInputDocumentHIENR01 -" + inputDocument.GetStringHeaderAttribute("HIENR01"));
+            this.LogDebug("*** ZPricingManager:FillInputDocumentHIENR02 -" + inputDocument.GetStringHeaderAttribute("HIENR02"));
 
             this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR01 - " + inputItem.GetStringAttribute("HIENR01"));
             this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR02 - " + inputItem.GetStringAttribute("HIENR02"));
@@ -174,6 +182,7 @@ namespace Capgemini.DSD.Pricing
 
         }
 
+        /*
         public override PricingResultEntity ProcessOutputDocument(PricingParameters pricingParameters, IPricingOutputDocumentBase outputDocument, string currency)
         {
             var pricingResultEntity = base.ProcessOutputDocument(pricingParameters, outputDocument, currency);
@@ -195,6 +204,7 @@ namespace Capgemini.DSD.Pricing
 
             return pricingResultEntity;
         }
+        */
  
 
         private void AddAltUoms(IPricingInputDocumentItemBase inputItem, string materialNumber, IEnumerable<MaterialAltUomBO> allMaterialAltUoms, bool isRunningOnIsoCode, IDictionary<string, string> physicalUnitDictionary)

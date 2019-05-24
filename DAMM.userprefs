@@ -1,10 +1,9 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench ActiveDocument="PricingManager/ZPricingManager.cs">
     <Files>
       <File FileName="PricingExtension/RequirementRoutine959.cs" Line="25" Column="2" />
-      <File FileName="PricingManager/ZPricingManager.cs" Line="238" Column="37" />
+      <File FileName="PricingManager/ZPricingManager.cs" Line="64" Column="47" />
       <File FileName="../DSDExtensions/InvoiceExtension/CustomInvoiceReport.cs" Line="176" Column="13" />
-      <File FileName="MaterialExtension/ZMaterialExt.cs" Line="11" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
