@@ -26,6 +26,21 @@ namespace Capgemini.DSD.Pricing
     [ApplicationExtension]
     public class ZPricingManager : PricingManager, ICanLog
     {
+        private IList<FieldExtensionBO> _materialExt;
+
+        private IList<FieldExtensionBO> MaterialExt
+        {
+            get
+            {
+                if (_materialExt == null)
+                {
+                    _materialExt = FieldExtensionDAL.FindFieldExtensionsForBusinessObjectAsync("MSE_MATERIAL_HD").Result;
+                }
+
+                return _materialExt;
+            }
+        }
+
         [Resolve]
         public DealConditionsDAL DealConditionDAL { get; set; }
 
@@ -135,30 +150,23 @@ namespace Capgemini.DSD.Pricing
 
             try
             {
-                var zzIIEE = FieldExtensionDAL.FindFieldExtensionsForBusinessObjectAsync("MSE_MATERIAL_HD").Result;
-                this.LogDebug("*** ZPricingManager:ZZIIEE count " + zzIIEE.Count());
+                this.LogDebug("*** ZPricingManager:ZZIIEE count " + MaterialExt.Count());
                               
-                if (zzIIEE.Count > 0) 
+                if (MaterialExt.Count > 0) 
                 {
-                    IEnumerator<FieldExtensionBO> enumerator = zzIIEE.GetEnumerator();
-                    while (enumerator.MoveNext())
+                    FieldExtensionBO fieldExtension = MaterialExt.First<FieldExtensionBO>((Func<FieldExtensionBO, bool>)(m => m.ElementKey == documentItem.MaterialNumber));
+   
+                    if (fieldExtension != null)
                     {
-                        FieldExtensionBO current = enumerator.Current;
-                        this.LogDebug(":ZZIIEE-BONAME=" + current.BOName);
-                        this.LogDebug(":ZZIIEE-KEY=" + current.ElementKey);
-                        this.LogDebug(":ZZIIEE-FIELD=" + current.Field);
-                        this.LogDebug(":ZZIIEE-VALUE=" + current.Value); 
-
-                        if (current.ElementKey.Equals(material.MaterialNumber, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            inputItem.AddAttribute("ZZIIEE", current.Value);
-                            break;
-                        }
+                        this.LogDebug("ZZIIEE: " + fieldExtension.ElementKey + "=" + fieldExtension.Value);
+                        inputItem.AddAttribute("ZZIIEE", fieldExtension.Value);
                     }
                 }
 
-                string prdh4 = materialSalesOrg.ProductHierarchy.Substring(6, 2);
-                inputItem.AddAttribute("ZZPRODH4", prdh4);
+                if (materialSalesOrg.ProductHierarchy.Length > 7) {
+                    string prdh4 = materialSalesOrg.ProductHierarchy.Substring(6, 2);
+                    inputItem.AddAttribute("ZZPRODH4", prdh4);
+                }
 
                 inputItem.AddAttribute("ZZMVGR1_P", materialSalesOrg.MaterialGroup1);
                 inputItem.AddAttribute("ZZMVGR2_P", materialSalesOrg.MaterialGroup2);
@@ -170,16 +178,22 @@ namespace Capgemini.DSD.Pricing
                 this.LogWarn("ZPricingManager:FillInputDocumentItem - Linea " + inputItem.ItemId + " Material: " + material.MaterialNumber, ex);
             }
 
-            this.LogDebug("*** ZPricingManager:FillInputDocumentHIENR01 -" + inputDocument.GetStringHeaderAttribute("HIENR01"));
-            this.LogDebug("*** ZPricingManager:FillInputDocumentHIENR02 -" + inputDocument.GetStringHeaderAttribute("HIENR02"));
+            if (inputDocument.GetStringHeaderAttribute("HIENR01") != null) 
+            {
+                inputDocument.AddAttribute("HIENR45", inputDocument.GetStringHeaderAttribute("HIENR01"));
+            }
 
+            if (inputDocument.GetStringHeaderAttribute("HIENR02") != null)
+            {
+                inputDocument.AddAttribute("HIENR46", inputDocument.GetStringHeaderAttribute("HIENR02"));
+            }
+
+           /*
             this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR01 - " + inputItem.GetStringAttribute("HIENR01"));
             this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR02 - " + inputItem.GetStringAttribute("HIENR02"));
             this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR03 - " + inputItem.GetStringAttribute("HIENR03"));
-            this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR04 - " + inputItem.GetStringAttribute("HIENR04"));
-            this.LogDebug("*** ZPricingManager:FillInputDocumentItemHIENR05 - " + inputItem.GetStringAttribute("HIENR05"));
             this.LogDebug("*** ZPricingManager:FillInputDocumentItemPMATN - " + inputItem.GetStringAttribute("PMATN"));
-
+            */
         }
 
         /*
