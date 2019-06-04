@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0250B765-B08B-4866-A333-3D1D944B2D9B}</ProjectGuid>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <UseMSBuildEngine>true</UseMSBuildEngine>
+    <OutputType>Library</OutputType>
+    <RootNamespace>OrderReportExt</RootNamespace>
+    <AssemblyName>OrderReportExt</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="OrderReportExt.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="SAPCD.DSD.MobileClient.Business">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Common">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Core">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Common.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Common.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Core.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Core.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Core.Resources">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Core.Resources.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Business.Entities">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Business.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Business.Objects">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.Objects.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Pricing.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Pricing.Interfaces.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+</Project>
