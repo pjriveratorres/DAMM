@@ -37,7 +37,8 @@
 /Users/privera/Projects/DAMM/PricingExtension/bin/Debug/de/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
 /Users/privera/Projects/DAMM/PricingExtension/bin/Debug/es/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
 /Users/privera/Projects/DAMM/PricingExtension/bin/Debug/fr/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
-/Users/privera/Projects/DAMM/PricingExtension/obj/Debug/ZZ.MobilePricing.UserExits.csprojResolveAssemblyReference.cache
 /Users/privera/Projects/DAMM/PricingExtension/obj/Debug/ZZ.MobilePricing.UserExits.csproj.CoreCompileInputs.cache
 /Users/privera/Projects/DAMM/PricingExtension/obj/Debug/ZZ.MobilePricing.UserExits.dll
 /Users/privera/Projects/DAMM/PricingExtension/obj/Debug/ZZ.MobilePricing.UserExits.pdb
+/Users/privera/Projects/DAMM/PricingExtension/obj/Debug/ZZ.MobilePricing.UserExits.csprojAssemblyReference.cache
+/Users/privera/Projects/DAMM/PricingExtension/obj/Debug/ZZ.MobilePricing.UserExits.csproj.CopyComplete

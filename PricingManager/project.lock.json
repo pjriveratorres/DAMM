@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETPortable,Version=v4.5,Profile=Profile111": {}
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "": [],
+    ".NETPortable,Version=v4.5,Profile=Profile111": []
+  },
+  "packageFolders": {
+    "/Users/privera/.nuget/packages/": {}
+  },
+  "project": {
+    "restore": {
+      "projectUniqueName": "/Users/privera/Projects/DAMM/PricingManager/PricingManager.csproj",
+      "projectName": "PricingManager",
+      "projectPath": "/Users/privera/Projects/DAMM/PricingManager/PricingManager.csproj",
+      "projectJsonPath": "/Users/privera/Projects/DAMM/PricingManager/project.json",
+      "packagesPath": "/Users/privera/.nuget/packages/",
+      "projectStyle": "ProjectJson",
+      "configFilePaths": [
+        "/Users/privera/.config/NuGet/NuGet.Config"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      }
+    },
+    "frameworks": {
+      "portable45-net45+win8+wpa81": {}
+    }
+  }
+}

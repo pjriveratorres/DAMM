@@ -35,7 +35,7 @@
 /Users/privera/Projects/DAMM/OrderReportExt/bin/Debug/de/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
 /Users/privera/Projects/DAMM/OrderReportExt/bin/Debug/es/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
 /Users/privera/Projects/DAMM/OrderReportExt/bin/Debug/fr/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
-/Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.csprojResolveAssemblyReference.cache
 /Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.csproj.CoreCompileInputs.cache
 /Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.dll
 /Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.pdb
+/Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.csproj.CopyComplete

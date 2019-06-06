@@ -20,6 +20,10 @@ using SAPCD.DSD.MobileClient.Common.Components;
 using SAPCD.DSD.MobileClient.Common.Interfaces;
 using SAPCD.DSD.MobileClient.Extensions.BusinessObjects;
 using SAPCD.DSD.MobileClient.Pricing.Interfaces.Core.DocumentObjects;
+using SAPCD.DSD.MobileClient.Pricing.Common.Utils;
+using SAPCD.DSD.MobileClient.Pricing.Interfaces.Enums;
+using System.Reflection;
+using SAPCD.DSD.MobileClient.Pricing.Interfaces.Logging;
 
 namespace Capgemini.DSD.Pricing
 {
@@ -27,6 +31,11 @@ namespace Capgemini.DSD.Pricing
     public class ZPricingManager : PricingManager, ICanLog
     {
         private IList<FieldExtensionBO> _materialExt;
+
+        // Generate list of deal conditions met:
+        private Dictionary<string, DealConditionHeaderBO> dealConditionsMetList; 
+        private Dictionary<int, string> lineItemConditionMet;
+
 
         private IList<FieldExtensionBO> MaterialExt
         {
@@ -57,19 +66,28 @@ namespace Capgemini.DSD.Pricing
         */
 
         public async override Task<PricingResultEntity> PriceOrderAsync(VisitEntity visit, ActivityEntity activity, OrderEntity order, IList<OrderItemEntity> orderItems, IList<DocumentCondBO> conditions)
-        {
-            // Materiales que tienen condicion de ventas activa.
-            List<string> materials = new List<string>();
-
-            // Generate list of deal conditions met:
-            List<string> dealConditionsMet = new List<string>();
+        { 
+            // init conditions met for every order been priced.
+            if (dealConditionsMetList != null)
+            {
+                dealConditionsMetList.Clear();
+                lineItemConditionMet.Clear();
+            }
+            else
+            {
+                dealConditionsMetList = new Dictionary<string, DealConditionHeaderBO>();
+                lineItemConditionMet = new Dictionary<int, string>();
+            }
 
             // First add item level:
-            foreach(DocumentCondBO conditionBO in conditions)
+            foreach (DocumentCondBO conditionBO in conditions)
             {
-                dealConditionsMet.Add(conditionBO.DealConditionNumber);
-                this.LogDebug("== :DealConditionNumMetItem " + conditionBO.DealConditionNumber);
-
+                var item = orderItems.FirstOrDefault(it => it.DocumentItemNumber == conditionBO.ItemNumber);
+                if (item != null)
+                {
+                    this.LogDebug("* ZPricingManager:PriceOrderAsync:ConditionItemLevel " + conditionBO.ItemNumber + "-" + conditionBO.DealConditionNumber);
+                    AddDealConditionMet(item.DocumentItemNumber, conditionBO.DealConditionNumber);
+                }
             }
 
             // Then add conditions met because of free goods:
@@ -77,34 +95,39 @@ namespace Capgemini.DSD.Pricing
             {
                 if (orderItem.IsPromotionResult)
                 {
-                    if (!dealConditionsMet.Contains(orderItem.PromotionNumber))
-                    {
-                        dealConditionsMet.Add(orderItem.PromotionNumber);
-                        this.LogDebug("== :DealConditionNumMetFG " + orderItem.PromotionNumber);
-                    }
+                    this.LogDebug("* ZPricingManager:PriceOrderAsync:PromotionResultFG " + orderItem.DocumentItemNumber + "-" + orderItem.PromotionNumber);
+                    AddDealConditionMet(orderItem.DocumentItemNumber, orderItem.PromotionNumber);
                 }
             }
 
+            // Now lets check preconditions
             IEnumerator<OrderItemEntity> itemEnum = orderItems.GetEnumerator();
 
+            // VALIDATION: Check if multiple DC were met because of same material using preconditions
             try
             {
+                this.LogDebug("* ZPricingManager:Check Pre-conditions for DC");
+
+                // Materiales where condition is active
+                List<string> materials = new List<string>();
+
                 while (itemEnum.MoveNext())
                 {
                     OrderItemEntity currentItem = itemEnum.Current;
                     if (!currentItem.IsPromotionResult)
                     {
-                        this.LogDebug("* ZPricingManager:PriceOrderAsync:Material " + currentItem.DocumentItemNumber + "-" + currentItem.MaterialNumber);
+                        this.LogDebug("* ZPricingManager:PriceOrderAsync:CheckPre-Cond. " + currentItem.DocumentItemNumber + "-" + currentItem.MaterialNumber);
 
-                        foreach (string dealConditionNumber in dealConditionsMet)
+                        foreach (string conditionID in dealConditionsMetList.Keys)
                         {
-                            IList<DealConditionPreconditionBO> preConditions = await DealConditionDAL.FindDealConditionPreconditionsByDealConditionIDAsync(dealConditionNumber);
+                            // Get Preconditions for DC
+                            IList<DealConditionPreconditionBO> preConditions = await DealConditionDAL.FindDealConditionPreconditionsByDealConditionIDAsync(conditionID);
 
                             if (preConditions.Count > 0)
                             {
                                 foreach (DealConditionPreconditionBO preCondition in preConditions)
                                 {
-                                    this.LogDebug("*** :PreconditionMaterial " + preCondition.MaterialNumber);
+                                    this.LogDebug("*** DC:PreCondMaterial " + preCondition.MaterialNumber);
 
                                     // Precondition material is the same as current item
                                     if (currentItem.MaterialNumber.Equals(preCondition.MaterialNumber))
@@ -117,26 +140,49 @@ namespace Capgemini.DSD.Pricing
                                         }
                                         else
                                         {
+                                            AddDealConditionMet(currentItem.DocumentItemNumber, conditionID);
                                             materials.Add(currentItem.MaterialNumber);
                                         }
                                     }
+
                                 }
                             }
                         }
 
-
-                        // Material not present in other active deal conditions. Reset list
+                        // Material not present in other active deal conditions. Reset list.
                         materials.Clear();
                     }
+
                 }
             }
             finally
             {
-                 if (itemEnum != null) itemEnum.Dispose();
+                if (itemEnum != null) itemEnum.Dispose();
             }
 
-
             return await base.PriceOrderAsync(visit, activity, order, orderItems, conditions);
+        }
+
+        private void AddDealConditionMet(int orderLineNumber, string conditionID)
+        {
+            this.LogDebug("== :DealCondition Met " + orderLineNumber + " => " + conditionID);
+
+            // Use to get the DC header and later use it to get the type
+            IList<string> conditionIDs = new List<string>() { conditionID };
+
+            if (!dealConditionsMetList.ContainsKey(conditionID))
+            {
+                var dealConditionHeaderBOList = DealConditionDAL.FindDealConditionHeadersByDealConditionIDWithoutDateCheckAsync(conditionIDs).Result;
+                if (dealConditionHeaderBOList.Count > 0)
+                {
+                    dealConditionsMetList.Add(conditionID, dealConditionHeaderBOList[0]);
+                }
+            }
+
+            if (!lineItemConditionMet.ContainsKey(orderLineNumber))
+            {
+                lineItemConditionMet.Add(orderLineNumber, conditionID);
+            }
         }
 
         /*
@@ -197,13 +243,16 @@ namespace Capgemini.DSD.Pricing
 
                 if (documentCondBos != null)
                 {
+                    /*
                     this.LogDebug("*** ZPricingManager:FillInputDocumentItem - count " + (documentCondBos.Count()));
 
                     if (documentCondBos.Count() > 1)
                     {
-                        throw new PricingException("No es permitido mas de una condición de ventas activa para el producto [" + material.MaterialNumber + "]");
+                        throw new PricingException("No es permitido mas de una condición de ventas activa para el mismo producto [" + material.MaterialNumber + "]");
                     }
+                    */
 
+                    // Add Manual conditions
                     IEnumerator<DocumentCondBO> enumerator = documentCondBos.GetEnumerator();
                     try
                     {
@@ -212,17 +261,6 @@ namespace Capgemini.DSD.Pricing
                         {
                             DocumentCondBO current = enumerator.Current;
                             inputItem.AddManualCondRecord(current.ConditionType, current.Amount, current.Currency);
-
-                            this.LogDebug("*** ZPricingManager:FillInputDocumentItem - Add manual deal cond for " + inputItem.ItemId + "/" + current.DealConditionNumber + "/" + current.ConditionType + "/" + current.Amount + " " + current.Currency);
-                            IList<string> conditionIDs = new List<string>(){current.DealConditionNumber};
-     
-                            var dealConditionHeaderBOList = DealConditionDAL.FindDealConditionHeadersByDealConditionIDWithoutDateCheckAsync(conditionIDs).Result;
-
-                            if (dealConditionHeaderBOList.Count > 0) {
-                                this.LogDebug("*** ZPricingManager:FillInputDocumentItem - DC Type: " + dealConditionHeaderBOList[0].DealConditionType);
-                                inputItem.AddAttribute("ZZTYPE", dealConditionHeaderBOList[0].DealConditionType);  // value to be used by routine 959.                               
-                            }
-                            break;
                         }
                     }
                     finally
@@ -230,6 +268,16 @@ namespace Capgemini.DSD.Pricing
                         if (enumerator != null)
                             enumerator.Dispose();
                     }
+                }
+            }
+
+            // Add DC type to be used by routine 959
+            if (lineItemConditionMet.TryGetValue(inputItem.ItemId, out string conditionID))
+            {
+                if (dealConditionsMetList.TryGetValue(conditionID, out DealConditionHeaderBO dealConditionHeaderBO))
+                {
+                    this.LogDebug("*** ZPricingManager:FillInputDocumentItem - Add contition type for " + inputItem.ItemId + "/" + dealConditionHeaderBO.DealConditionID + "/" + dealConditionHeaderBO.DealConditionType);
+                    inputItem.AddAttribute("ZZTYPE", dealConditionHeaderBO.DealConditionType);  // value to be used by routine 959.                               
                 }
             }
 
@@ -249,7 +297,7 @@ namespace Capgemini.DSD.Pricing
                 this.LogDebug("*** ZPricingManager:FillInputDocumentItem-CustomerCountry - " + materialTax.Country);
                 this.LogDebug("*** ZPricingManager:FillInputDocumentItem-TAXM1 - " + materialTax.TaxClass1);
                 this.LogDebug("*** ZPricingManager:FillInputDocumentItem-TAXM2 - " + materialTax.TaxClass2);
-                this.LogDebug("*** ZPricingManager:FillInputDocumentItem-TAXM2 - " + materialTax.TaxClass3);
+                this.LogDebug("*** ZPricingManager:FillInputDocumentItem-TAXM3 - " + materialTax.TaxClass3);
                 inputItem.AddMaterialTaxInfo(materialTax);
             }
 
@@ -283,11 +331,10 @@ namespace Capgemini.DSD.Pricing
                 inputItem.AddAttribute("ZZMVGR3_P", materialSalesOrg.MaterialGroup3); 
                 inputItem.AddAttribute("UPMAT", material.MaterialNumber);
 
-                inputDocument.AddAttribute("HIENR", inputDocument.GetStringHeaderAttribute("KUNNR"));
             }
             catch (Exception ex)
             {
-                this.LogWarn("ZPricingManager:FillInputDocumentItem - Linea " + inputItem.ItemId + " Material: " + material.MaterialNumber, ex);
+                this.LogError("ZPricingManager:FillInputDocumentItem - Linea " + inputItem.ItemId + " Material: " + material.MaterialNumber, ex);
             }
 
 
@@ -308,27 +355,23 @@ namespace Capgemini.DSD.Pricing
             //this.LogDebug("*** ZPricingManager:FillInputDocumentItemPMATN - " + inputItem.GetStringAttribute("PMATN"));
         }
 
+  
         /*
         public override PricingResultEntity ProcessOutputDocument(PricingParameters pricingParameters, IPricingOutputDocumentBase outputDocument, string currency)
         {
-            var pricingResultEntity = base.ProcessOutputDocument(pricingParameters, outputDocument, currency);
-
-            IList<DocumentCondBO> conditions = pricingParameters.Conditions;
-            this.LogDebug("*** ZPricingManager:ProcessOutputDocument - conditions = " + (conditions.Count));
-
-            if (conditions != null)
+            if (outputDocument != null)
             {
-                IList<DocumentCondBO> conditionsForHeader = (IList<DocumentCondBO>)null;
-                IList<DocumentCondBO> conditionsForItems = (IList<DocumentCondBO>)null;
+                //outputDocument.GetType().GetRuntimeProperty("PricingSeverity").SetValue(outputDocument, PricingSeverity.Warning);
+                Message message = new Message(this.GetType(), "ProcessOutputDocument", SeverityCode.Warning, "My Message");
+                MethodInfo method = outputDocument.GetType().GetMethod("AddMessage", new [] {message.GetType()});
 
-                conditionsForHeader = (IList<DocumentCondBO>)conditions.Where<DocumentCondBO>((Func<DocumentCondBO, bool>)(x => x.ItemNumber == 0)).ToList<DocumentCondBO>();
-                conditionsForItems = (IList<DocumentCondBO>)conditions.Where<DocumentCondBO>((Func<DocumentCondBO, bool>)(x => (uint)x.ItemNumber > 0U)).ToList<DocumentCondBO>();
-
-                this.LogDebug("*** ZPricingManager:ProcessOutputDocument - conditionsForHeader =" + (conditionsForHeader.Count));
-                this.LogDebug("*** ZPricingManager:ProcessOutputDocument - conditionsForItems =" + (conditionsForItems.Count));
+                this.LogDebug("*** ZPricingManager:Before Invoke " + (method != null) + " " + outputDocument.Messages.Count());
+                method.Invoke(outputDocument, new object[] { message });
+                this.LogDebug("*** ZPricingManager:After Invoke " + outputDocument.Messages.Count());
             }
 
-            return pricingResultEntity;
+
+            return base.ProcessOutputDocument(pricingParameters, outputDocument, currency);
         }
         */
  
