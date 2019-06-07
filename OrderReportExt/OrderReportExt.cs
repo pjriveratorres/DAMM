@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 using SAPCD.DSD.MobileClient.Business.Reports;
 using SAPCD.DSD.MobileClient.Common.Components;
 using SAPCD.DSD.MobileClient.Common.Interfaces;
-using SAPCD.DSD.MobileClient.Business.Objects.Common;
 using SAPCD.DSD.MobileClient.Business.Interfaces.Components;
-using SAPCD.DSD.MobileClient.Business.Objects;
 using SAPCD.DSD.MobileClient.Business.Components;
+using SAPCD.DSD.MobileClient.Business.Entities.Order;
+using System.Diagnostics.Contracts;
+using System.Collections.Generic;
 using SAPCD.DSD.MobileClient.Business.Entities.Common;
 using SAPCD.DSD.MobileClient.Pricing.Interfaces.Enums;
-using SAPCD.DSD.MobileClient.Business.Entities.Order;
 
 namespace Capgemini.DSD.Reports.Extensions
 {
@@ -21,13 +20,11 @@ namespace Capgemini.DSD.Reports.Extensions
         // Used to extract pricing result
         private OrderCreationProcessor _orderCreationProcessor;
 
-
-        public override string CustomizingKey { get { return Constants.CUSTOMIZING_REPORT_KEY_INVOICE; } }
-
-
         public void Init(IOrderCreationProcessor processor) 
         {
             base.Init(processor);
+
+            this.LogError("OrderReportExt:InitializeAsync: Init");
 
             _orderCreationProcessor = (SAPCD.DSD.MobileClient.Business.Components.OrderCreationProcessor)processor;
         }
@@ -36,85 +33,77 @@ namespace Capgemini.DSD.Reports.Extensions
         // this method is used for loading data asynchronously
         public async override Task InitializeAsync()
         {
-            IList<PricingConditionResultItemEntity> conditions = this._orderCreationProcessor.PricingConditionResults;
+            Contract.Ensures(Contract.Result<Task>() != null);
+            // load data from base OrderConfirmation base report
+            await base.InitializeAsync();
 
+            /*
             foreach (OrderItemEntity item in OrderItemEntityList)
             {
-                try
-                {
-                    decimal discount = 0M;
+                // Calculate new columns and set other properties 
+                item.TaxRate1 = 2.99M;
+                item.TaxRate2 = item.Price - item.TaxRate1;
+            }
+            */
 
-                    foreach (PricingConditionResultItemEntity condition in conditions)
+                IList<PricingConditionResultItemEntity> conditions = this._orderCreationProcessor.PricingConditionResults;
+
+                this.LogTrace("OrderReportExt:InitializeAsync: " + (conditions != null));
+
+                foreach (OrderItemEntity item in OrderItemEntityList)
+                {
+                    try
                     {
-                        this.LogTrace("OrderReportExt:Condition: " + condition.ConditionType, condition.ConditionType);
+                        this.LogTrace("OrderReportExt:Item: " + item.DocumentItemNumber);
 
-                        // for current item.... get base price and discounts
-                        if (condition.ItemNumber == item.DocumentItemNumber)
+                        decimal discount = 0M;
+                        item.TaxRate1 = 0M;
+                        item.TaxRate2 = 0M;
+                        item.TaxRate3 = 0M;
+
+                        foreach (PricingConditionResultItemEntity condition in conditions)
                         {
-                            /*
-                            if (condition.ConditionClass == ConditionClass.Prices)
+                            // for current item.... get base price and discounts
+                            if (condition.ItemNumber == item.DocumentItemNumber)
                             {
-                                item.Price = (decimal)condition.ConditionValueInternal;
-                            }
-                            else 
-                            */
-                            if (condition.ConditionClass == ConditionClass.DiscountSurcharge)
-                            {
-                                // Is this a discount?
-                                if (condition.ConditionValueInternal < 0) 
+                                if (condition.ConditionClass == ConditionClass.Prices)
                                 {
-                                    discount = discount + (decimal)condition.ConditionValueInternal;
+                                    item.TaxRate1 = roundDecimals((decimal)condition.ConditionValueInternal / item.ActualQuantity);
                                 }
-                            }
-                         }
+                                 
+
+                                if (condition.ConditionClass == ConditionClass.DiscountSurcharge)
+                                {
+                                    this.LogTrace("OrderReportExt:Discount: " + condition.ConditionType + " = " + condition.ConditionValueInternal);
+
+                                    // Is this a discount?
+                                    if (condition.ConditionValueInternal < 0) 
+                                    {
+                                         discount = discount + roundDecimals((decimal)condition.ConditionValueInternal/item.ActualQuantity);
+                                    }
+                                }
+                             }
+                        }
+
+                        // Calculate new columns and set other properties 
+                        item.TaxRate2 = (discount * -1);
+                        item.TaxRate3 = item.TaxRate1 - item.TaxRate2;
+                        item.TaxRate4 = item.TaxRate3 * item.ActualQuantity;
+                      }
+                    catch (Exception ex)
+                    {
+                        this.LogError("OrderReportExt:InitializeAsync: Init =" + ex.Message);
+                        this.LogError(ex);
                     }
-
-                    // Calculate new columns and set other properties 
-                    item.TaxRate1 = discount;
-                    item.TaxRate2 = item.Price - discount;
-                }
-                catch (Exception ex)
-                {
-                    this.LogError("OrderReportExt:InitializeAsync: Init =" + ex.Message);
-                    this.LogError(ex);
-
-                    item.ActualUnitOfMeasure = "ERR " + ex.Message;
                 }
             }
-        }
 
 
         private decimal roundDecimals(decimal value)
         {
             string strNumber = String.Format("{0:0.00}", value);
-            this.LogDebug("OrderReportExt:: roundDecimals =" + strNumber);
+            this.LogDebug("OrderReportExt: roundDecimals =" + strNumber);
             return Convert.ToDecimal(strNumber);
-        }
-
-
-        private async Task<string> GetCustomizingValue(string custKey, string keyValue)
-        {
-            string addValue = "";
-
-            try
-            {
-                this.LogTrace("OrderReportExt:GetCustomizingValue:{0}", keyValue, 216);
-                CustomizingBO customizingBO = await this.Customizing.FindCustomizingAsync("PEDIDO", keyValue).ConfigureAwait(false);
-
-                if (customizingBO != null)
-                {
-                    if (!string.IsNullOrEmpty(customizingBO.KeyValueCode))
-                    {
-                        addValue = customizingBO.KeyValueCode;
-                    }
-                }
-            }
-            catch (Exception ex) 
-            {
-                addValue = keyValue + " " + ex.Message;   
-            }
- 
-            return addValue;
         }
     }
 }

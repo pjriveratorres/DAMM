@@ -39,3 +39,4 @@
 /Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.dll
 /Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.pdb
 /Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.csproj.CopyComplete
+/Users/privera/Projects/DAMM/OrderReportExt/obj/Debug/OrderReportExt.csprojAssemblyReference.cache
