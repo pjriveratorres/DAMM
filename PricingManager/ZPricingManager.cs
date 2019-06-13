@@ -24,6 +24,7 @@ using SAPCD.DSD.MobileClient.Pricing.Common.Utils;
 using SAPCD.DSD.MobileClient.Pricing.Interfaces.Enums;
 using System.Reflection;
 using SAPCD.DSD.MobileClient.Pricing.Interfaces.Logging;
+using SAPCD.DSD.MobileClient.Core.Interfaces.Services;
 
 namespace Capgemini.DSD.Pricing
 {
@@ -35,7 +36,7 @@ namespace Capgemini.DSD.Pricing
         // Generate list of deal conditions met:
         private Dictionary<string, DealConditionHeaderBO> dealConditionsMetList; 
         private Dictionary<int, string> lineItemConditionMet;
-
+        private string WarningMessage { get; set; }
 
         private IList<FieldExtensionBO> MaterialExt
         {
@@ -56,6 +57,9 @@ namespace Capgemini.DSD.Pricing
         [Resolve]
         public FieldExtensionDAL FieldExtensionDAL { get; set; }
 
+        [Resolve]
+        public IDialogService Dialog { get; set; }
+
         /*
         // this method is used for loading data asynchronously
         public async override Task InitializeAsync()
@@ -66,8 +70,9 @@ namespace Capgemini.DSD.Pricing
         */
 
         public async override Task<PricingResultEntity> PriceOrderAsync(VisitEntity visit, ActivityEntity activity, OrderEntity order, IList<OrderItemEntity> orderItems, IList<DocumentCondBO> conditions)
-        { 
-            // init conditions met for every order been priced.
+        {
+            // init conditions met and message for every order been priced.
+            WarningMessage = "";
             if (dealConditionsMetList != null)
             {
                 dealConditionsMetList.Clear();
@@ -80,84 +85,87 @@ namespace Capgemini.DSD.Pricing
             }
 
             // First add item level:
-            foreach (DocumentCondBO conditionBO in conditions)
+            if (conditions != null)
             {
-                var item = orderItems.FirstOrDefault(it => it.DocumentItemNumber == conditionBO.ItemNumber);
-                if (item != null)
+                foreach (DocumentCondBO conditionBO in conditions)
                 {
-                    this.LogDebug("* ZPricingManager:PriceOrderAsync:ConditionItemLevel " + conditionBO.ItemNumber + "-" + conditionBO.DealConditionNumber);
-                    AddDealConditionMet(item.DocumentItemNumber, conditionBO.DealConditionNumber);
-                }
-            }
-
-            // Then add conditions met because of free goods:
-            foreach (OrderItemEntity orderItem in orderItems)
-            {
-                if (orderItem.IsPromotionResult)
-                {
-                    this.LogDebug("* ZPricingManager:PriceOrderAsync:PromotionResultFG " + orderItem.DocumentItemNumber + "-" + orderItem.PromotionNumber);
-                    AddDealConditionMet(orderItem.DocumentItemNumber, orderItem.PromotionNumber);
-                }
-            }
-
-            // Now lets check preconditions
-            IEnumerator<OrderItemEntity> itemEnum = orderItems.GetEnumerator();
-
-            // VALIDATION: Check if multiple DC were met because of same material using preconditions
-            try
-            {
-                this.LogDebug("* ZPricingManager:Check Pre-conditions for DC");
-
-                // Materiales where condition is active
-                List<string> materials = new List<string>();
-
-                while (itemEnum.MoveNext())
-                {
-                    OrderItemEntity currentItem = itemEnum.Current;
-                    if (!currentItem.IsPromotionResult)
+                    var item = orderItems.FirstOrDefault(it => it.DocumentItemNumber == conditionBO.ItemNumber);
+                    if (item != null)
                     {
-                        this.LogDebug("* ZPricingManager:PriceOrderAsync:CheckPre-Cond. " + currentItem.DocumentItemNumber + "-" + currentItem.MaterialNumber);
+                        this.LogDebug("* ZPricingManager:PriceOrderAsync:ConditionItemLevel " + conditionBO.ItemNumber + "-" + conditionBO.DealConditionNumber);
+                        AddDealConditionMet(item.DocumentItemNumber, conditionBO.DealConditionNumber);
+                    }
+                }
+            }
 
-                        foreach (string conditionID in dealConditionsMetList.Keys)
+            if (orderItems != null)
+            {
+                // Then add conditions met because of free goods:
+                foreach (OrderItemEntity orderItem in orderItems)
+                {
+                    if (orderItem.IsPromotionResult)
+                    {
+                        this.LogDebug("* ZPricingManager:PriceOrderAsync:PromotionResultFG " + orderItem.DocumentItemNumber + "-" + orderItem.PromotionNumber);
+                        AddDealConditionMet(orderItem.DocumentItemNumber, orderItem.PromotionNumber);
+                    }
+                }
+
+                // Now lets check preconditions
+                IEnumerator<OrderItemEntity> itemEnum = orderItems.GetEnumerator();
+
+                // VALIDATION: Check if multiple DC were met because of same material using preconditions
+                try
+                {
+                    this.LogDebug("* ZPricingManager:Check Pre-conditions for DC");
+
+                    if (itemEnum != null)
+                    {
+                        while (itemEnum.MoveNext())
                         {
-                            // Get Preconditions for DC
-                            IList<DealConditionPreconditionBO> preConditions = await DealConditionDAL.FindDealConditionPreconditionsByDealConditionIDAsync(conditionID);
+                            OrderItemEntity currentItem = itemEnum.Current;
+                            int count = 0; // count conditions met
 
-                            if (preConditions.Count > 0)
+                            if (!currentItem.IsPromotionResult)
                             {
-                                foreach (DealConditionPreconditionBO preCondition in preConditions)
-                                {
-                                    this.LogDebug("*** DC:PreCondMaterial " + preCondition.MaterialNumber);
+                                this.LogDebug("* ZPricingManager:PriceOrderAsync:CheckPre-Cond. " + currentItem.DocumentItemNumber + "-" + currentItem.MaterialNumber);
 
-                                    // Precondition material is the same as current item
-                                    if (currentItem.MaterialNumber.Equals(preCondition.MaterialNumber))
+                                foreach (string conditionID in dealConditionsMetList.Keys)
+                                {
+                                    // Get Preconditions for DC
+                                    IList<DealConditionPreconditionBO> preConditions = await DealConditionDAL.FindDealConditionPreconditionsByDealConditionIDAsync(conditionID);
+
+                                    if (preConditions.Count > 0)
                                     {
-                                        // Was this precondition material already met in another DC?  Generar error if true.
-                                        if (materials.Contains(currentItem.MaterialNumber))
+                                        foreach (DealConditionPreconditionBO preCondition in preConditions)
                                         {
-                                            this.LogDebug("*** :ERROR - Material found more than once in the pre-conditions met");
-                                            throw new PricingException("No es permitido mas de una condición de ventas activa para el producto [" + currentItem.MaterialNumber + "]");
-                                        }
-                                        else
-                                        {
-                                            AddDealConditionMet(currentItem.DocumentItemNumber, conditionID);
-                                            materials.Add(currentItem.MaterialNumber);
+                                            this.LogDebug("*** DC:PreCondMaterial " + preCondition.MaterialNumber);
+
+                                            // Precondition material is the same as current item
+                                            if (currentItem.MaterialNumber.Equals(preCondition.MaterialNumber))
+                                            {
+                                                AddDealConditionMet(currentItem.DocumentItemNumber, conditionID);
+                                                count++;
+                                            }
                                         }
                                     }
+                                }
 
+                                // A warning is present for current item don't procee more items
+                                if (count > 1)
+                                {
+                                    this.LogDebug("*** :ERROR - Material met more than once in a DC pre-conditions");
+                                    //throw new PricingException("No es permitido mas de una condición de ventas activa para el producto [" + currentItem.MaterialNumber + "]");
+                                    WarningMessage = "Se han aplicado " + count + " promociones sobre el material " + currentItem.MaterialNumber + ". Si continuas sin revisarlo se aplicarán todas las promociones.";
+                                    break;
                                 }
                             }
                         }
-
-                        // Material not present in other active deal conditions. Reset list.
-                        materials.Clear();
                     }
-
                 }
-            }
-            finally
-            {
-                if (itemEnum != null) itemEnum.Dispose();
+                finally
+                {
+                    if (itemEnum != null) itemEnum.Dispose();
+                }
             }
 
             return await base.PriceOrderAsync(visit, activity, order, orderItems, conditions);
@@ -355,27 +363,34 @@ namespace Capgemini.DSD.Pricing
             //this.LogDebug("*** ZPricingManager:FillInputDocumentItemPMATN - " + inputItem.GetStringAttribute("PMATN"));
         }
 
-  
-        /*
+ 
         public override PricingResultEntity ProcessOutputDocument(PricingParameters pricingParameters, IPricingOutputDocumentBase outputDocument, string currency)
         {
             if (outputDocument != null)
             {
-                //outputDocument.GetType().GetRuntimeProperty("PricingSeverity").SetValue(outputDocument, PricingSeverity.Warning);
+                /*
+                outputDocument.GetType().GetRuntimeProperty("PricingSeverity").SetValue(outputDocument, PricingSeverity.Warning);
                 Message message = new Message(this.GetType(), "ProcessOutputDocument", SeverityCode.Warning, "My Message");
                 MethodInfo method = outputDocument.GetType().GetMethod("AddMessage", new [] {message.GetType()});
 
                 this.LogDebug("*** ZPricingManager:Before Invoke " + (method != null) + " " + outputDocument.Messages.Count());
                 method.Invoke(outputDocument, new object[] { message });
                 this.LogDebug("*** ZPricingManager:After Invoke " + outputDocument.Messages.Count());
+                */
+
+                if (WarningMessage.Length > 0)
+                {
+                    this.LogDebug("*** ZPricingManager:ShowAlert=> " + WarningMessage);
+                    Dialog.ShowAlertAsync("Condiciones De Ventas", WarningMessage);
+                    //Dialog.ShowErrorAsync("Condiciones De Ventas", WarningMessage);
+                }
             }
 
 
             return base.ProcessOutputDocument(pricingParameters, outputDocument, currency);
         }
-        */
- 
 
+ 
         private void AddAltUoms(IPricingInputDocumentItemBase inputItem, string materialNumber, IEnumerable<MaterialAltUomBO> allMaterialAltUoms, bool isRunningOnIsoCode, IDictionary<string, string> physicalUnitDictionary)
         {
             List<MaterialAltUomBO> list = allMaterialAltUoms.Where<MaterialAltUomBO>((Func<MaterialAltUomBO, bool>)(ma => ma.MaterialNumber == materialNumber)).ToList<MaterialAltUomBO>();

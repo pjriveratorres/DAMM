@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B4A2BEB4-B71C-46D2-973B-F8FF5BF61B69}</ProjectGuid>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>DealConditionManager</RootNamespace>
+    <AssemblyName>ZDealConditionManager</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ZDealConditionManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="SAPCD.DSD.MobileClient.Business">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Common.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Common.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Extensions">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Common">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Data">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Business.Entities">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Data.Interfaces, Version=1.0.7058.26207, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="SAPCD.DSD.MobileClient.Data.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Data.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="SAPCD.DSD.MobileClient.Business.Interfaces">
+      <HintPath>..\..\..\Documents\MyStuff\DSD\Android\DRSTRDELIV_AND02_21-80001084\assemblies\SAPCD.DSD.MobileClient.Business.Interfaces.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+</Project>

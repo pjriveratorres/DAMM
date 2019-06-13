@@ -1,5 +1,3 @@
-/Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csprojAssemblyReference.cache
-/Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csproj.CoreCompileInputs.cache
 /Users/privera/Projects/DAMM/PricingManager/bin/Debug/ZPricingManager.dll
 /Users/privera/Projects/DAMM/PricingManager/bin/Debug/ZPricingManager.pdb
 /Users/privera/Projects/DAMM/PricingManager/bin/Debug/SAPCD.DSD.MobileClient.Business.dll
@@ -42,6 +40,8 @@
 /Users/privera/Projects/DAMM/PricingManager/bin/Debug/de/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
 /Users/privera/Projects/DAMM/PricingManager/bin/Debug/es/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
 /Users/privera/Projects/DAMM/PricingManager/bin/Debug/fr/SAPCD.DSD.MobileClient.Core.Resources.resources.dll
+/Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csproj.CoreCompileInputs.cache
 /Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csproj.CopyComplete
 /Users/privera/Projects/DAMM/PricingManager/obj/Debug/ZPricingManager.dll
 /Users/privera/Projects/DAMM/PricingManager/obj/Debug/ZPricingManager.pdb
+/Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csprojAssemblyReference.cache

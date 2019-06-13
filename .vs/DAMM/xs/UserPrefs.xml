@@ -1,20 +1,16 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workbench ActiveDocument="../DSDExtensions/InvoiceExtension/CustomInvoiceReport.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="DealConditionManager/ZDealConditionManager.cs">
     <Files>
-      <File FileName="OrderReportExt/OrderReportExt.cs" Line="38" Column="45" />
-      <File FileName="PricingManager/ZPricingManager.cs" Line="110" Column="1" />
-      <File FileName="PricingExtension/RequirementRoutine959.cs" Line="25" Column="2" />
-      <File FileName="../DSDExtensions/InvoiceExtension/CustomInvoiceReport.cs" Line="1" Column="1" />
+      <File FileName="PricingManager/ZPricingManager.cs" Line="109" Column="1" />
+      <File FileName="DealConditionManager/ZDealConditionManager.cs" Line="25" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="DAMM" expanded="True">
-            <Node name="OrderReportExt" expanded="True">
-              <Node name="OrderReportExt.cs" selected="True" />
-            </Node>
+            <Node name="DealConditionManager" expanded="True" selected="True" />
+            <Node name="OrderReportExt" expanded="True" />
             <Node name="PricingManager" expanded="True" />
-            <Node name="ZZ.MobilePricing.UserExits" expanded="True" />
           </Node>
         </State>
       </Pad>
