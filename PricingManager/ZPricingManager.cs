@@ -2,29 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SAPCD.DSD.MobileClient.Business;
 using SAPCD.DSD.MobileClient.Business.Components;
 using SAPCD.DSD.MobileClient.Business.Entities.Common;
-using SAPCD.DSD.MobileClient.Business.Entities.Delivery;
 using SAPCD.DSD.MobileClient.Business.Entities.Document;
 using SAPCD.DSD.MobileClient.Business.Entities.Order;
 using SAPCD.DSD.MobileClient.Business.Entities.Visit;
-using SAPCD.DSD.MobileClient.Business.Exceptions;
-using SAPCD.DSD.MobileClient.Business.Interfaces;
 using SAPCD.DSD.MobileClient.Business.Interfaces.Managers;
 using SAPCD.DSD.MobileClient.Business.Managers;
 using SAPCD.DSD.MobileClient.Business.Objects;
 using SAPCD.DSD.MobileClient.Business.Objects.Common;
-using SAPCD.DSD.MobileClient.Data;
 using SAPCD.DSD.MobileClient.Common.Components;
 using SAPCD.DSD.MobileClient.Common.Interfaces;
+using SAPCD.DSD.MobileClient.Core.Interfaces.Services;
+using SAPCD.DSD.MobileClient.Data;
 using SAPCD.DSD.MobileClient.Extensions.BusinessObjects;
 using SAPCD.DSD.MobileClient.Pricing.Interfaces.Core.DocumentObjects;
-using SAPCD.DSD.MobileClient.Pricing.Common.Utils;
-using SAPCD.DSD.MobileClient.Pricing.Interfaces.Enums;
-using System.Reflection;
-using SAPCD.DSD.MobileClient.Pricing.Interfaces.Logging;
-using SAPCD.DSD.MobileClient.Core.Interfaces.Services;
 
 namespace Capgemini.DSD.Pricing
 {
@@ -34,9 +26,13 @@ namespace Capgemini.DSD.Pricing
         private IList<FieldExtensionBO> _materialExt;
 
         // Generate list of deal conditions met:
-        private Dictionary<string, DealConditionHeaderBO> dealConditionsMetList; 
-        private Dictionary<int, string> lineItemConditionMet;
+        private IDictionary<string, DealConditionHeaderBO> dealConditionsMetList; 
+        private IDictionary<int, string> lineItemConditionMet;
+
+        
         private string WarningMessage { get; set; }
+        private bool warningMet = false;
+
 
         private IList<FieldExtensionBO> MaterialExt
         {
@@ -69,10 +65,13 @@ namespace Capgemini.DSD.Pricing
         }
         */
 
+        
         public async override Task<PricingResultEntity> PriceOrderAsync(VisitEntity visit, ActivityEntity activity, OrderEntity order, IList<OrderItemEntity> orderItems, IList<DocumentCondBO> conditions)
         {
             // init conditions met and message for every order been priced.
-            WarningMessage = "";
+            WarningMessage = "Se han aplicado más de una promoción sobre los materiales:";
+            warningMet = false;
+
             if (dealConditionsMetList != null)
             {
                 dealConditionsMetList.Clear();
@@ -93,7 +92,7 @@ namespace Capgemini.DSD.Pricing
                     if (item != null)
                     {
                         this.LogDebug("* ZPricingManager:PriceOrderAsync:ConditionItemLevel " + conditionBO.ItemNumber + "-" + conditionBO.DealConditionNumber);
-                        AddDealConditionMet(item.DocumentItemNumber, conditionBO.DealConditionNumber);
+                        await AddDealConditionMetAsync(item.DocumentItemNumber, conditionBO.DealConditionNumber);
                     }
                 }
             }
@@ -106,9 +105,10 @@ namespace Capgemini.DSD.Pricing
                     if (orderItem.IsPromotionResult)
                     {
                         this.LogDebug("* ZPricingManager:PriceOrderAsync:PromotionResultFG " + orderItem.DocumentItemNumber + "-" + orderItem.PromotionNumber);
-                        AddDealConditionMet(orderItem.DocumentItemNumber, orderItem.PromotionNumber);
+                        await AddDealConditionMetAsync(orderItem.DocumentItemNumber, orderItem.PromotionNumber);
                     }
                 }
+
 
                 // Now lets check preconditions
                 IEnumerator<OrderItemEntity> itemEnum = orderItems.GetEnumerator();
@@ -143,20 +143,21 @@ namespace Capgemini.DSD.Pricing
                                             // Precondition material is the same as current item
                                             if (currentItem.MaterialNumber.Equals(preCondition.MaterialNumber))
                                             {
-                                                AddDealConditionMet(currentItem.DocumentItemNumber, conditionID);
+                                                await AddDealConditionMetAsync(currentItem.DocumentItemNumber, conditionID);
                                                 count++;
                                             }
                                         }
                                     }
                                 }
 
+
                                 // A warning is present for current item don't procee more items
                                 if (count > 1)
                                 {
                                     this.LogDebug("*** :ERROR - Material met more than once in a DC pre-conditions");
                                     //throw new PricingException("No es permitido mas de una condición de ventas activa para el producto [" + currentItem.MaterialNumber + "]");
-                                    WarningMessage = "Se han aplicado " + count + " promociones sobre el material " + currentItem.MaterialNumber + ". Si continuas sin revisarlo se aplicarán todas las promociones.";
-                                    break;
+                                    WarningMessage = WarningMessage + "\n" + currentItem.MaterialNumber + " - (" + count + ")";
+                                    warningMet = true;
                                 }
                             }
                         }
@@ -171,27 +172,47 @@ namespace Capgemini.DSD.Pricing
             return await base.PriceOrderAsync(visit, activity, order, orderItems, conditions);
         }
 
-        private void AddDealConditionMet(int orderLineNumber, string conditionID)
+        private async Task AddDealConditionMetAsync(int orderLineNumber, string conditionID)
         {
-            this.LogDebug("== :DealCondition Met " + orderLineNumber + " => " + conditionID);
-
-            // Use to get the DC header and later use it to get the type
-            IList<string> conditionIDs = new List<string>() { conditionID };
-
-            if (!dealConditionsMetList.ContainsKey(conditionID))
+            try
             {
-                var dealConditionHeaderBOList = DealConditionDAL.FindDealConditionHeadersByDealConditionIDWithoutDateCheckAsync(conditionIDs).Result;
-                if (dealConditionHeaderBOList.Count > 0)
+                this.LogDebug("== :AddDealConditionMet - Start: " + orderLineNumber + " => " + conditionID);
+
+                // Use to get the DC header and later use it to get the type
+                IList<string> conditionIDs = new List<string>() { conditionID };
+
+                 if (!dealConditionsMetList.ContainsKey(conditionID))
                 {
-                    dealConditionsMetList.Add(conditionID, dealConditionHeaderBOList[0]);
-                }
-            }
+                    this.LogDebug("== :AddDealConditionMet before FindDealConditionHeader");
 
-            if (!lineItemConditionMet.ContainsKey(orderLineNumber))
-            {
-                lineItemConditionMet.Add(orderLineNumber, conditionID);
+                    var result = await DealConditionDAL.FindDealConditionHeadersByDealConditionIDWithoutDateCheckAsync(conditionIDs).ConfigureAwait(false);
+                    if (result != null)
+                    {
+                        if (result.Count > 0)
+                        {
+                            this.LogDebug("== :AddDealConditionMet result found - add then");
+
+                            dealConditionsMetList.Add(conditionID, result[0]);
+                        }
+                    }
+                }
+
+                this.LogDebug("== :AddDealConditionMet add to lineItemConditionMet. ");
+
+                if (!lineItemConditionMet.ContainsKey(orderLineNumber))
+                {
+                    lineItemConditionMet.Add(orderLineNumber, conditionID);
+                }
+
+                this.LogDebug("== :AddDealConditionMet Met Exit. ");
             }
+            catch(Exception all)
+            {
+                this.LogDebug("== :AddDealConditionMet " + all.Message);
+                this.LogError(all);
+            }    
         }
+
 
         /*
         public async override Task<IPricingInputDocumentBase> PrepareInputDocumentAsync(PricingParameters pricingParameters) 
@@ -378,7 +399,8 @@ namespace Capgemini.DSD.Pricing
                 this.LogDebug("*** ZPricingManager:After Invoke " + outputDocument.Messages.Count());
                 */
 
-                if (WarningMessage.Length > 0)
+                
+                if (warningMet)
                 {
                     this.LogDebug("*** ZPricingManager:ShowAlert=> " + WarningMessage);
                     Dialog.ShowAlertAsync("Condiciones De Ventas", WarningMessage);
@@ -386,9 +408,9 @@ namespace Capgemini.DSD.Pricing
                 }
             }
 
-
             return base.ProcessOutputDocument(pricingParameters, outputDocument, currency);
         }
+
 
  
         private void AddAltUoms(IPricingInputDocumentItemBase inputItem, string materialNumber, IEnumerable<MaterialAltUomBO> allMaterialAltUoms, bool isRunningOnIsoCode, IDictionary<string, string> physicalUnitDictionary)

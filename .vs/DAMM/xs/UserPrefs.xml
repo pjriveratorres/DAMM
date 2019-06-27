@@ -1,16 +1,17 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workbench ActiveDocument="DealConditionManager/ZDealConditionManager.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PricingManager/ZPricingManager.cs">
     <Files>
-      <File FileName="PricingManager/ZPricingManager.cs" Line="109" Column="1" />
-      <File FileName="DealConditionManager/ZDealConditionManager.cs" Line="25" Column="1" />
+      <File FileName="PricingManager/ZPricingManager.cs" Line="161" Column="22" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="DAMM" expanded="True">
-            <Node name="DealConditionManager" expanded="True" selected="True" />
+            <Node name="DealConditionManager" expanded="True" />
             <Node name="OrderReportExt" expanded="True" />
-            <Node name="PricingManager" expanded="True" />
+            <Node name="PricingManager" expanded="True">
+              <Node name="ZPricingManager.cs" selected="True" />
+            </Node>
           </Node>
         </State>
       </Pad>

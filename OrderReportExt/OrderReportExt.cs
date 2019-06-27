@@ -72,7 +72,7 @@ namespace Capgemini.DSD.Reports.Extensions
                                 }
                                  
 
-                                if (condition.ConditionClass == ConditionClass.DiscountSurcharge)
+                                if ((condition.ConditionClass == ConditionClass.DiscountSurcharge) && (!condition.IsInactive))
                                 {
                                     this.LogTrace("OrderReportExt:Discount: " + condition.ConditionType + " = " + condition.ConditionValueInternal);
 

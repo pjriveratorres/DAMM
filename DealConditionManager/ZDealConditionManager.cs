@@ -29,7 +29,7 @@ namespace Capgemini.DSD.DealConditions
 
             IList <DealConditionEntity> dealContionList = await base.FindDealConditionsByCustomerAsync(visit, paymentTerm, documentDate);
 
-            return (IList<DealConditionEntity>)dealContionList.OrderBy(dc => dc.CheckedActiveDC);
+            return (IList<DealConditionEntity>)dealContionList.OrderBy(dc => dc.IsCheckedEnabled);
         }
     }
 }

@@ -30,3 +30,4 @@
 /Users/privera/Projects/DAMM/DealConditionManager/obj/Debug/DealConditionManager.csproj.CopyComplete
 /Users/privera/Projects/DAMM/DealConditionManager/obj/Debug/ZDealConditionManager.dll
 /Users/privera/Projects/DAMM/DealConditionManager/obj/Debug/ZDealConditionManager.pdb
+/Users/privera/Projects/DAMM/DealConditionManager/obj/Debug/DealConditionManager.csprojAssemblyReference.cache
