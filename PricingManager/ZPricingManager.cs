@@ -89,7 +89,7 @@ namespace Capgemini.DSD.Pricing
                 foreach (DocumentCondBO conditionBO in conditions)
                 {
                     var item = orderItems.FirstOrDefault(it => it.DocumentItemNumber == conditionBO.ItemNumber);
-                    if (item != null)
+                    if (item != null && item.ActualQuantity > 0)
                     {
                         this.LogDebug("* ZPricingManager:PriceOrderAsync:ConditionItemLevel " + conditionBO.ItemNumber + "-" + conditionBO.DealConditionNumber);
                         await AddDealConditionMetAsync(item.DocumentItemNumber, conditionBO.DealConditionNumber);
@@ -102,7 +102,7 @@ namespace Capgemini.DSD.Pricing
                 // Then add conditions met because of free goods:
                 foreach (OrderItemEntity orderItem in orderItems)
                 {
-                    if (orderItem.IsPromotionResult)
+                    if (orderItem.IsPromotionResult && orderItem.ActualQuantity > 0)
                     {
                         this.LogDebug("* ZPricingManager:PriceOrderAsync:PromotionResultFG " + orderItem.DocumentItemNumber + "-" + orderItem.PromotionNumber);
                         await AddDealConditionMetAsync(orderItem.DocumentItemNumber, orderItem.PromotionNumber);
@@ -125,7 +125,7 @@ namespace Capgemini.DSD.Pricing
                             OrderItemEntity currentItem = itemEnum.Current;
                             int count = 0; // count conditions met
 
-                            if (!currentItem.IsPromotionResult)
+                            if (!currentItem.IsPromotionResult && currentItem.ActualQuantity > 0)
                             {
                                 this.LogDebug("* ZPricingManager:PriceOrderAsync:CheckPre-Cond. " + currentItem.DocumentItemNumber + "-" + currentItem.MaterialNumber);
 

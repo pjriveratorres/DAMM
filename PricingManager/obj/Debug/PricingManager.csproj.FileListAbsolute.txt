@@ -44,3 +44,4 @@
 /Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csproj.CopyComplete
 /Users/privera/Projects/DAMM/PricingManager/obj/Debug/ZPricingManager.dll
 /Users/privera/Projects/DAMM/PricingManager/obj/Debug/ZPricingManager.pdb
+/Users/privera/Projects/DAMM/PricingManager/obj/Debug/PricingManager.csprojAssemblyReference.cache

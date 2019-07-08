@@ -76,11 +76,8 @@ namespace Capgemini.DSD.Reports.Extensions
                                 {
                                     this.LogTrace("OrderReportExt:Discount: " + condition.ConditionType + " = " + condition.ConditionValueInternal);
 
-                                    // Is this a discount?
-                                    if (condition.ConditionValueInternal < 0) 
-                                    {
-                                         discount = discount + roundDecimals((decimal)condition.ConditionValueInternal/item.ActualQuantity);
-                                    }
+                                    // consider positive and negative discounts
+                                    discount = discount + roundDecimals((decimal)condition.ConditionValueInternal/item.ActualQuantity);
                                 }
                              }
                         }
